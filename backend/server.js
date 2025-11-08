@@ -1,7 +1,8 @@
 // server.js - Backend pour DeGen Score
-// Déployé sur Render
+// Version corrigée pour Render avec CommonJS
 const express = require('express');
 const cors = require('cors');
+const fetch = require('node-fetch');
 
 const app = express();
 const PORT = process.env.PORT || 10000;
@@ -29,8 +30,6 @@ async function fetchFromEtherscan(params) {
     url.searchParams.append(key, params[key]);
   });
 
-  // Dynamic import de node-fetch pour compatibilité ES modules
-  const fetch = (await import('node-fetch')).default;
   const response = await fetch(url.toString());
   const data = await response.json();
   
