@@ -1,0 +1,31 @@
+{
+  "name": "degen-score-backend",
+  "version": "1.0.0",
+  "description": "Backend API for DeGen Score - Crypto reputation analyzer on Base",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "crypto",
+    "web3",
+    "defi",
+    "nft",
+    "ethereum",
+    "base",
+    "blockchain",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2"
+  }
+}
