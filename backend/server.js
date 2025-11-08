@@ -1,5 +1,3 @@
-// server.js - Backend pour DeGen Score
-// Version corrigée avec API Basescan standard
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
@@ -7,20 +5,15 @@ const fetch = require('node-fetch');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Configuration
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || 'TVJEPKYWMRAH2XQGPZ6Q9NRQTFGWIYPMWH';
-const BASE_CHAIN_ID = 8453;
 const BASE_API_URL = 'https://api.basescan.org/api';
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Cache simple en mémoire
 const cache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 5 * 60 * 1000;
 
-// Helper function pour les appels API
 async function fetchFromEtherscan(params) {
   const url = new URL(BASE_API_URL);
   url.searchParams.append('apikey', ETHERSCAN_API_KEY);
@@ -36,7 +29,6 @@ async function fetchFromEtherscan(params) {
     return data.result;
   }
   
-  // Log l'erreur pour debugging
   if (data.status === '0') {
     console.error('Basescan API Error:', data.message || data.result);
   }
@@ -44,7 +36,6 @@ async function fetchFromEtherscan(params) {
   return [];
 }
 
-// Route: Récupérer les transactions normales
 app.get('/api/transactions/:address', async (req, res) => {
   try {
     const { address } = req.params;
@@ -80,7 +71,6 @@ app.get('/api/transactions/:address', async (req, res) => {
   }
 });
 
-// Route: Récupérer les transactions NFT
 app.get('/api/nft-transactions/:address', async (req, res) => {
   try {
     const { address } = req.params;
@@ -116,7 +106,6 @@ app.get('/api/nft-transactions/:address', async (req, res) => {
   }
 });
 
-// Route: Récupérer les transactions ERC-20
 app.get('/api/token-transactions/:address', async (req, res) => {
   try {
     const { address } = req.params;
@@ -152,7 +141,6 @@ app.get('/api/token-transactions/:address', async (req, res) => {
   }
 });
 
-// Route: Analyse complète
 app.get('/api/analyze/:address', async (req, res) => {
   try {
     const { address } = req.params;
@@ -165,7 +153,7 @@ app.get('/api/analyze/:address', async (req, res) => {
       }
     }
 
-    console.log(`📊 Analyzing wallet: ${address}`);
+    console.log(`Analyzing wallet: ${address}`);
 
     const [transactions, nftTransactions, tokenTransactions] = await Promise.all([
       fetchFromEtherscan({
@@ -200,7 +188,7 @@ app.get('/api/analyze/:address', async (req, res) => {
       })
     ]);
 
-    console.log(`✅ Data fetched: ${transactions.length} txs, ${nftTransactions.length} NFTs, ${tokenTransactions.length} tokens`);
+    console.log(`Data fetched: ${transactions.length} txs, ${nftTransactions.length} NFTs, ${tokenTransactions.length} tokens`);
 
     const analysis = analyzeWalletData(transactions, nftTransactions, tokenTransactions, address);
 
@@ -216,7 +204,6 @@ app.get('/api/analyze/:address', async (req, res) => {
   }
 });
 
-// Fonction d'analyse des données
 function analyzeWalletData(transactions, nftTransactions, tokenTransactions, address) {
   const defiProtocols = {
     '0x4200000000000000000000000000000000000006': 'WETH',
@@ -257,9 +244,7 @@ function analyzeWalletData(transactions, nftTransactions, tokenTransactions, add
       try {
         const gasCost = (parseInt(tx.gasUsed) * parseInt(tx.gasPrice)) / 1e18;
         totalGasEth += gasCost;
-      } catch (e) {
-        // Ignore
-      }
+      } catch (e) {}
     }
   });
   
@@ -286,7 +271,7 @@ function analyzeWalletData(transactions, nftTransactions, tokenTransactions, add
   else if (totalScore >= 30) rank = "BABY DEGEN 🐣";
   else rank = "NORMIE 🥲";
 
-  console.log(`🎯 Score calculated: ${totalScore}/100 - ${rank}`);
+  console.log(`Score calculated: ${totalScore}/100 - ${rank}`);
 
   return {
     totalScore,
@@ -309,7 +294,6 @@ function analyzeWalletData(transactions, nftTransactions, tokenTransactions, add
   };
 }
 
-// Route de santé
 app.get('/health', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -319,7 +303,6 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Route racine
 app.get('/', (req, res) => {
   res.json({
     name: 'DeGen Score API',
@@ -334,7 +317,6 @@ app.get('/', (req, res) => {
   });
 });
 
-// Nettoyer le cache
 setInterval(() => {
   const now = Date.now();
   let deleted = 0;
@@ -345,50 +327,19 @@ setInterval(() => {
     }
   }
   if (deleted > 0) {
-    console.log(`🧹 Cache cleaned: ${deleted} entries removed`);
+    console.log(`Cache cleaned: ${deleted} entries removed`);
   }
 }, 60000);
 
-// Démarrer le serveur
 app.listen(PORT, () => {
-  console.log(`🚀 DeGen Score Backend running on port ${PORT}`);
-  console.log(`📊 API Key configured: ${ETHERSCAN_API_KEY ? 'Yes' : 'No'}`);
-  console.log(`⚡ Cache duration: ${CACHE_DURATION / 1000}s`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`DeGen Score Backend running on port ${PORT}`);
+  console.log(`API Key configured: ${ETHERSCAN_API_KEY ? 'Yes' : 'No'}`);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
   console.error('Unhandled Rejection:', reason);
 });
 
 process.on('uncaughtException', (error) => {
   console.error('Uncaught Exception:', error);
 });
-```
-
----
-
-## 📋 Instructions :
-
-1. **Allez sur GitHub** : https://github.com/Makabeez/Degen-score-app/blob/main/backend/server.js
-2. **Cliquez sur ✏️ Edit**
-3. **Sélectionnez tout** (Ctrl+A)
-4. **Supprimez**
-5. **Copiez le code ci-dessus** (du début jusqu'à la fin)
-6. **Collez** dans l'éditeur GitHub
-7. **Commit message** : `Fix Basescan API endpoint`
-8. **Commit changes**
-
----
-
-## 🚀 Puis redéployez sur Render
-
-1. Allez sur Render
-2. **Manual Deploy** → **Clear build cache & deploy**
-3. Attendez 2 minutes
-
----
-
-**Testez ensuite** : 
-```
-https://degen-score-backend.onrender.com/api/analyze/0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
