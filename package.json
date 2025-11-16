@@ -1,0 +1,8 @@
+{
+  "name": "degen-score-api",
+  "version": "1.0.0",
+  "description": "DeGen Score API for Vercel",
+  "dependencies": {
+    "ethers": "^5.7.2"
+  }
+}
