@@ -4,419 +4,552 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DeGen Score - Crypto Reputation on Base</title>
-    <meta name="description" content="Analyze your on-chain activity on Base Network and mint your DeGen Score NFT certificate">
-    
-    <!-- Farcaster SDK -->
-    <script src="https://sdk.fc.dev/farcaster.js"></script>
-    
-    <!-- React & Babel -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Farcaster Frame Meta Tags -->
-    <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="https://degen-score-app.vercel.app/splash_screen.png" />
-    <meta property="fc:frame:button:1" content="Check Your DeGen Score" />
-    <meta property="fc:frame:button:1:action" content="link" />
-    <meta property="fc:frame:button:1:target" content="https://degen-score-app.vercel.app" />
+    <meta property="fc:frame" content="vNext">
+    <meta property="fc:frame:image" content="https://degen-score-app.vercel.app/app_icon.png">
+    <meta property="fc:frame:button:1" content="Check Your Score">
+    <meta property="fc:frame:button:1:action" content="link">
+    <meta property="fc:frame:button:1:target" content="https://degen-score-app.vercel.app">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="DeGen Score - Crypto Reputation on Base" />
-    <meta property="og:description" content="Analyze your on-chain activity and mint your DeGen certificate NFT" />
-    <meta property="og:image" content="https://degen-score-app.vercel.app/splash_screen.png" />
-    <meta property="og:url" content="https://degen-score-app.vercel.app" />
+    <meta property="og:title" content="DeGen Score - Check Your On-Chain Reputation">
+    <meta property="og:description" content="Analyze your DeFi activity on Base and get your degen score!">
+    <meta property="og:image" content="https://degen-score-app.vercel.app/app_icon.png">
     
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="DeGen Score" />
-    <meta name="twitter:description" content="Calculate your crypto degeneracy on Base" />
-    <meta name="twitter:image" content="https://degen-score-app.vercel.app/splash_screen.png" />
+    <!-- Ethers.js Library -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.umd.min.js"></script>
     
     <style>
-        body {
+        * {
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .connect-wallet-btn {
+            width: 100%;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .score-display {
+            display: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .score-display.active {
+            display: block;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .score-number {
+            font-size: 4em;
+            font-weight: bold;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .rank {
+            font-size: 2em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .breakdown {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .breakdown h3 {
+            margin-bottom: 15px;
+        }
+
+        .category {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .category:last-child {
+            border-bottom: none;
+        }
+
+        .mint-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .mint-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            margin-top: 15px;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .share-btn {
+            flex: 1;
+        }
+
+        .farcaster-btn {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+        }
+
+        .twitter-btn {
+            background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        
-        // Initialiser Farcaster SDK
-        if (typeof window.fc !== 'undefined') {
-            window.fc.ready();
-        }
-        
-        // Configuration - Tout est automatiquement configuré
-        const BACKEND_URL = 'https://degen-score-backend.onrender.com';
-        const BASE_CHAIN_ID = 8453;
-        const NFT_CONTRACT = '0xaba449D7F76c17c9D77a5351E92536Ade2Bb4ca5';
-        const NFT_PRICE = '0.00015';
-        const REWARD_WALLET = '0x4D0Dc07E678d7668dEcB00CD22467bB0B9FbeCBf';
+    <div class="container">
+        <div class="header">
+            <h1>⚔️ DeGen Score</h1>
+            <p>Real On-Chain Analysis + NFT</p>
+        </div>
 
-        const DeGenScoreApp = () => {
-            const [screen, setScreen] = useState('welcome');
-            const [walletAddress, setWalletAddress] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [loadingText, setLoadingText] = useState('');
-            const [statusMessage, setStatusMessage] = useState({ text: '', type: '' });
-            const [leaderboard, setLeaderboard] = useState([]);
-            const [scoreData, setScoreData] = useState({
-                total: 0,
-                rank: '',
-                breakdown: { airdrop: 0, defi: 0, nft: 0, bridge: 0, gas: 0 }
-            });
+        <button class="connect-wallet-btn" id="connectWallet">
+            🔗 Connect Wallet
+        </button>
 
-            useEffect(() => {
-                loadLeaderboard();
-            }, []);
+        <div class="input-section">
+            <label for="walletAddress">Or Enter Wallet Address:</label>
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="walletAddress" 
+                    placeholder="0x..."
+                >
+                <button id="analyzeBtn">Analyze</button>
+            </div>
+        </div>
 
-            const showStatus = (text, type) => {
-                setStatusMessage({ text, type });
-                setTimeout(() => setStatusMessage({ text: '', type: '' }), 5000);
-            };
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your on-chain activity...</p>
+            <p style="font-size: 0.9em; opacity: 0.7; margin-top: 10px;">This may take 30-60 seconds</p>
+        </div>
 
-            const connectWallet = async () => {
-                try {
-                    setLoading(true);
-                    setLoadingText('Connecting wallet...');
-                    
-                    if (typeof window.ethereum === 'undefined') {
-                        throw new Error('Please install MetaMask!');
-                    }
+        <div class="error" id="error"></div>
 
-                    const accounts = await window.ethereum.request({
-                        method: 'eth_requestAccounts'
-                    });
+        <div class="score-display" id="scoreDisplay">
+            <div class="score-circle">
+                <div class="score-number" id="scoreNumber">0</div>
+                <div class="score-label">DEGEN SCORE</div>
+            </div>
 
-                    const chainId = await window.ethereum.request({
-                        method: 'eth_chainId'
-                    });
+            <div class="rank" id="rank">NORMIE 🥲</div>
 
-                    if (parseInt(chainId, 16) !== BASE_CHAIN_ID) {
-                        await switchToBase();
-                    }
+            <div class="breakdown">
+                <h3>Score Breakdown</h3>
+                <div class="category">
+                    <span>Airdrop</span>
+                    <span id="airdropScore">0/25</span>
+                </div>
+                <div class="category">
+                    <span>DeFi</span>
+                    <span id="defiScore">0/25</span>
+                </div>
+                <div class="category">
+                    <span>NFT</span>
+                    <span id="nftScore">0/20</span>
+                </div>
+                <div class="category">
+                    <span>Bridge</span>
+                    <span id="bridgeScore">0/15</span>
+                </div>
+                <div class="category">
+                    <span>Gas</span>
+                    <span id="gasScore">0/15</span>
+                </div>
+            </div>
 
-                    setWalletAddress(accounts[0]);
-                    showStatus('Wallet connected successfully!', 'success');
-                    setLoading(false);
-                } catch (error) {
-                    console.error(error);
-                    showStatus(error.message, 'error');
-                    setLoading(false);
-                }
-            };
+            <div class="mint-section">
+                <p>🎨 <strong>Mint DeGen Certificate NFT</strong></p>
+                <p>Immortalize your score on-chain</p>
+                <p style="font-size: 1.5em; margin: 10px 0;"><strong>0.00015 ETH</strong></p>
+                <button class="mint-btn" id="mintBtn">Mint NFT Certificate</button>
+            </div>
 
-            const switchToBase = async () => {
-                try {
-                    await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: '0x2105' }],
-                    });
-                } catch (switchError) {
-                    if (switchError.code === 4902) {
-                        await window.ethereum.request({
-                            method: 'wallet_addEthereumChain',
-                            params: [{
-                                chainId: '0x2105',
-                                chainName: 'Base',
-                                nativeCurrency: { name: 'Ethereum', symbol: 'ETH', decimals: 18 },
-                                rpcUrls: ['https://mainnet.base.org'],
-                                blockExplorerUrls: ['https://basescan.org']
-                            }]
-                        });
-                    }
-                }
-            };
+            <div class="share-buttons">
+                <button class="share-btn farcaster-btn" id="shareFC">Share on Farcaster</button>
+                <button class="share-btn twitter-btn" id="shareTW">Share on Twitter</button>
+            </div>
 
-            const analyzeDeGenScore = async () => {
-                if (!walletAddress) {
-                    showStatus('Please connect your wallet first', 'error');
+            <button id="analyzeAnother" style="margin-top: 20px; width: 100%;">
+                Analyze Another Wallet
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3001'
+            : 'https://degen-score-app.vercel.app';
+
+        let currentAddress = null;
+        let currentScore = null;
+
+        // Elements
+        const connectWalletBtn = document.getElementById('connectWallet');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const walletInput = document.getElementById('walletAddress');
+        const loading = document.getElementById('loading');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const errorDiv = document.getElementById('error');
+        const analyzeAnotherBtn = document.getElementById('analyzeAnother');
+        const mintBtn = document.getElementById('mintBtn');
+        const shareFCBtn = document.getElementById('shareFC');
+        const shareTWBtn = document.getElementById('shareTW');
+
+        // Connect Wallet
+        connectWalletBtn.addEventListener('click', async () => {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showError('Please install MetaMask or another Web3 wallet');
                     return;
                 }
 
-                setLoading(true);
-                setScreen('loading');
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                const signer = provider.getSigner();
+                const address = await signer.getAddress();
                 
-                try {
-                    setLoadingText('Analyzing your on-chain activity...');
-                    
-                    const response = await fetch(`${BACKEND_URL}/api/analyze/${walletAddress}`);
-                    
-                    if (!response.ok) {
-                        throw new Error('API request failed');
-                    }
-                    
-                    const data = await response.json();
-                    
-                    setScoreData({
-                        total: data.totalScore,
-                        rank: data.rank,
-                        breakdown: data.breakdown
-                    });
-                    
-                    await saveToLeaderboard(walletAddress, data.totalScore, data.rank);
-                    
-                    setScreen('analysis');
-                    setLoading(false);
-                    
-                    showStatus(`DeGen Score calculated: ${data.totalScore}/100`, 'success');
-                    
-                } catch (error) {
-                    console.error('Analysis error:', error);
-                    showStatus('API connection failed. Please try again.', 'error');
-                    setLoading(false);
+                walletInput.value = address;
+                currentAddress = address;
+                
+                showError('Wallet connected! Click Analyze to check your score.', 'success');
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showError('Failed to connect wallet: ' + error.message);
+            }
+        });
+
+        // Analyze Button
+        analyzeBtn.addEventListener('click', () => {
+            const address = walletInput.value.trim();
+            if (!address) {
+                showError('Please enter a wallet address');
+                return;
+            }
+            if (!ethers.utils.isAddress(address)) {
+                showError('Invalid wallet address');
+                return;
+            }
+            analyzeWallet(address);
+        });
+
+        // Enter key support
+        walletInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                analyzeBtn.click();
+            }
+        });
+
+        // Analyze Wallet
+        async function analyzeWallet(address) {
+            currentAddress = address;
+            hideError();
+            scoreDisplay.classList.remove('active');
+            loading.classList.add('active');
+
+            try {
+                const response = await fetch(`${API_URL}/api/score?address=${address}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
                 }
-            };
 
-            const saveToLeaderboard = async (address, score, rank) => {
-                try {
-                    if (typeof window.storage !== 'undefined') {
-                        await window.storage.set(
-                            `leaderboard:${address}`,
-                            JSON.stringify({ address, score, rank, timestamp: Date.now() }),
-                            true
-                        );
-                        await loadLeaderboard();
-                    }
-                } catch (error) {
-                    console.log('Leaderboard not available');
+                const data = await response.json();
+                console.log('Score data received:', data);
+                
+                currentScore = data;
+                displayScore(data);
+                
+            } catch (error) {
+                console.error('Error analyzing wallet:', error);
+                showError('Failed to analyze wallet. Please try again. Error: ' + error.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        // Display Score
+        function displayScore(data) {
+            const totalScore = data.totalScore || 0;
+            
+            // Update score
+            document.getElementById('scoreNumber').textContent = totalScore;
+            
+            // Update rank
+            const rank = getRank(totalScore);
+            document.getElementById('rank').textContent = rank;
+            
+            // Update breakdown
+            document.getElementById('airdropScore').textContent = `${data.airdropScore || 0}/25`;
+            document.getElementById('defiScore').textContent = `${data.defiScore || 0}/25`;
+            document.getElementById('nftScore').textContent = `${data.nftScore || 0}/20`;
+            document.getElementById('bridgeScore').textContent = `${data.bridgeScore || 0}/15`;
+            document.getElementById('gasScore').textContent = `${data.gasScore || 0}/15`;
+            
+            scoreDisplay.classList.add('active');
+        }
+
+        // Get Rank
+        function getRank(score) {
+            if (score >= 81) return 'ULTRA DEGEN 🦍';
+            if (score >= 61) return 'DEGEN KING 👑';
+            if (score >= 41) return 'DEGEN 🎯';
+            if (score >= 21) return 'CASUAL 👀';
+            return 'NORMIE 🥲';
+        }
+
+        // Analyze Another
+        analyzeAnotherBtn.addEventListener('click', () => {
+            scoreDisplay.classList.remove('active');
+            walletInput.value = '';
+            walletInput.focus();
+        });
+
+        // Mint NFT
+        mintBtn.addEventListener('click', async () => {
+            if (!currentAddress || !currentScore) {
+                showError('Please analyze a wallet first');
+                return;
+            }
+
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showError('Please install MetaMask to mint NFT');
+                    return;
                 }
-            };
 
-            const loadLeaderboard = async () => {
-                try {
-                    if (typeof window.storage !== 'undefined') {
-                        const result = await window.storage.list('leaderboard:', true);
-                        if (result && result.keys) {
-                            const entries = await Promise.all(
-                                result.keys.map(async (key) => {
-                                    try {
-                                        const data = await window.storage.get(key, true);
-                                        return data ? JSON.parse(data.value) : null;
-                                    } catch {
-                                        return null;
-                                    }
-                                })
-                            );
-                            
-                            const sorted = entries
-                                .filter(e => e !== null)
-                                .sort((a, b) => b.score - a.score)
-                                .slice(0, 10);
-                            
-                            setLeaderboard(sorted);
-                        }
-                    }
-                } catch (error) {
-                    console.log('Leaderboard not available');
-                }
-            };
+                showError('Minting feature coming soon!', 'info');
+                
+                // TODO: Implement minting logic
+                // const provider = new ethers.providers.Web3Provider(window.ethereum);
+                // const signer = provider.getSigner();
+                // ... mint logic
+                
+            } catch (error) {
+                console.error('Error minting NFT:', error);
+                showError('Failed to mint NFT: ' + error.message);
+            }
+        });
 
-            const mintNFT = async () => {
-                try {
-                    if (!window.ethereum) {
-                        throw new Error('MetaMask not found');
-                    }
-
-                    setLoading(true);
-                    setLoadingText('Preparing mint transaction...');
-
-                    const txParams = {
-                        from: walletAddress,
-                        to: REWARD_WALLET,
-                        value: '0x' + (parseFloat(NFT_PRICE) * 1e18).toString(16),
-                    };
-
-                    const txHash = await window.ethereum.request({
-                        method: 'eth_sendTransaction',
-                        params: [txParams],
-                    });
-
-                    setLoadingText('Confirming transaction...');
-                    
-                    await new Promise((resolve) => {
-                        const checkReceipt = async () => {
-                            try {
-                                const receipt = await window.ethereum.request({
-                                    method: 'eth_getTransactionReceipt',
-                                    params: [txHash],
-                                });
-                                if (receipt) {
-                                    resolve(receipt);
-                                } else {
-                                    setTimeout(checkReceipt, 2000);
-                                }
-                            } catch (error) {
-                                setTimeout(checkReceipt, 2000);
-                            }
-                        };
-                        checkReceipt();
-                    });
-                    
-                    showStatus(`🎉 NFT minted! Tx: ${txHash.slice(0, 10)}...`, 'success');
-                    setLoading(false);
-                } catch (error) {
-                    console.error('Mint error:', error);
-                    showStatus(`Mint failed: ${error.message}`, 'error');
-                    setLoading(false);
-                }
-            };
-
-            const shareOnFarcaster = () => {
-                const text = `🚀 My DeGen Score is ${scoreData.total}/100! ${scoreData.rank} Check yours at https://degen-score-app.vercel.app #DeGenScore #Base`;
-                window.open(`https://warpcast.com/~/compose?text=${encodeURIComponent(text)}`, '_blank');
-            };
-
-            const shareOnTwitter = () => {
-                const text = `🔵 Just scored ${scoreData.total}/100 on DeGen Score! ${scoreData.rank} #DeGenScore #Base`;
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
-            };
-
-            return (
-                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4">
-                    <div className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
-                        <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-8 relative">
-                            <div className="absolute top-4 right-4 text-5xl opacity-30">🚀</div>
-                            <h1 className="text-3xl font-bold text-white mb-2">DeGen Score</h1>
-                            <p className="text-white/90 text-sm">Real On-Chain Analysis + NFT</p>
-                        </div>
-
-                        <div className="p-6">
-                            {statusMessage.text && (
-                                <div className={`mb-4 p-3 rounded-lg text-sm ${
-                                    statusMessage.type === 'success' 
-                                        ? 'bg-green-500/20 border border-green-500/50 text-green-300' 
-                                        : 'bg-red-500/20 border border-red-500/50 text-red-300'
-                                }`}>
-                                    {statusMessage.text}
-                                </div>
-                            )}
-
-                            {screen === 'welcome' && (
-                                <div className="space-y-4">
-                                    <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                                        <h3 className="text-white font-semibold mb-2">Connect Wallet</h3>
-                                        <p className="text-white/70 text-sm mb-4">Analyze your Base activity & mint NFT</p>
-                                        <div className="bg-black/30 rounded-lg p-3 font-mono text-sm text-white/90">
-                                            {walletAddress ? `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}` : 'Not connected'}
-                                        </div>
-                                    </div>
-
-                                    <button onClick={connectWallet} className="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white py-4 rounded-xl font-semibold hover:shadow-lg hover:scale-105 transition-all">
-                                        Connect Wallet
-                                    </button>
-
-                                    <button onClick={analyzeDeGenScore} disabled={!walletAddress} className="w-full bg-white/10 text-white py-4 rounded-xl font-semibold border border-white/20 hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Analyze My DeGen Score
-                                    </button>
-
-                                    {leaderboard.length > 0 && (
-                                        <div className="bg-white/5 rounded-2xl p-5 border border-white/10 mt-6">
-                                            <h3 className="text-white font-semibold mb-4">🏆 Top DeGens</h3>
-                                            <div className="space-y-2">
-                                                {leaderboard.slice(0, 5).map((entry, idx) => (
-                                                    <div key={idx} className="flex items-center gap-3 bg-black/20 rounded-lg p-3">
-                                                        <div className="w-8 h-8 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                                            {idx + 1}
-                                                        </div>
-                                                        <div className="flex-1 text-white/90 text-sm font-mono truncate">
-                                                            {entry.address.slice(0, 6)}...{entry.address.slice(-4)}
-                                                        </div>
-                                                        <div className="text-orange-400 font-bold">{entry.score}</div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-
-                            {screen === 'loading' && (
-                                <div className="text-center py-12">
-                                    <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                    <p className="text-white/90">{loadingText}</p>
-                                </div>
-                            )}
-
-                            {screen === 'analysis' && (
-                                <div className="space-y-6">
-                                    <div className="text-center">
-                                        <div className="relative w-44 h-44 mx-auto">
-                                            <svg className="w-full h-full transform -rotate-90">
-                                                <circle cx="88" cy="88" r="80" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
-                                                <circle cx="88" cy="88" r="80" fill="none" stroke="url(#gradient)" strokeWidth="8" strokeDasharray={`${scoreData.total * 5.03} 503`} strokeLinecap="round" />
-                                                <defs>
-                                                    <linearGradient id="gradient">
-                                                        <stop offset="0%" stopColor="#f97316" />
-                                                        <stop offset="100%" stopColor="#ec4899" />
-                                                    </linearGradient>
-                                                </defs>
-                                            </svg>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <div className="text-5xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                                                    {scoreData.total}
-                                                </div>
-                                                <div className="text-white/60 text-sm">DEGEN SCORE</div>
-                                            </div>
-                                        </div>
-                                        <div className="text-orange-400 font-semibold mt-3">{scoreData.rank}</div>
-                                    </div>
-
-                                    <div className="bg-white/5 rounded-2xl p-5 space-y-3">
-                                        <h3 className="text-white font-semibold mb-3">Score Breakdown</h3>
-                                        {[
-                                            { label: 'Airdrop', value: scoreData.breakdown.airdrop, max: 25 },
-                                            { label: 'DeFi', value: scoreData.breakdown.defi, max: 25 },
-                                            { label: 'NFT', value: scoreData.breakdown.nft, max: 20 },
-                                            { label: 'Bridge', value: scoreData.breakdown.bridge, max: 15 },
-                                            { label: 'Gas', value: scoreData.breakdown.gas, max: 15 },
-                                        ].map((item, idx) => (
-                                            <div key={idx} className="flex justify-between py-2 border-b border-white/10 last:border-0">
-                                                <span className="text-white/90 text-sm">{item.label}</span>
-                                                <span className="text-orange-400 font-semibold">{item.value}/{item.max}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl p-5 text-center">
-                                        <h3 className="text-yellow-300 font-semibold mb-2">🎨 Mint DeGen Certificate NFT</h3>
-                                        <p className="text-white/70 text-sm mb-2">Immortalize your score on-chain</p>
-                                        <p className="text-yellow-300 text-lg font-bold mb-4">{NFT_PRICE} ETH</p>
-                                        <button onClick={mintNFT} className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all">
-                                            Mint NFT Certificate
-                                        </button>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button onClick={shareOnFarcaster} className="bg-purple-600 text-white py-3 rounded-xl font-semibold hover:bg-purple-700 transition-all">
-                                            Farcaster
-                                        </button>
-                                        <button onClick={shareOnTwitter} className="bg-blue-500 text-white py-3 rounded-xl font-semibold hover:bg-blue-600 transition-all">
-                                            Twitter
-                                        </button>
-                                    </div>
-
-                                    <button onClick={() => setScreen('welcome')} className="w-full bg-white/5 text-white py-3 rounded-xl font-semibold border border-white/20 hover:bg-white/10 transition-all">
-                                        Analyze Another Wallet
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+        // Share on Farcaster
+        shareFCBtn.addEventListener('click', () => {
+            const text = encodeURIComponent(
+                `I got ${currentScore?.totalScore || 0}/100 on DeGen Score! 🎯\n\n` +
+                `Rank: ${getRank(currentScore?.totalScore || 0)}\n\n` +
+                `Check your score: https://degen-score-app.vercel.app`
             );
-        };
+            window.open(`https://warpcast.com/~/compose?text=${text}`, '_blank');
+        });
 
-        ReactDOM.render(<DeGenScoreApp />, document.getElementById('root'));
+        // Share on Twitter
+        shareTWBtn.addEventListener('click', () => {
+            const text = encodeURIComponent(
+                `I got ${currentScore?.totalScore || 0}/100 on DeGen Score! 🎯\n\n` +
+                `Rank: ${getRank(currentScore?.totalScore || 0)}\n\n` +
+                `Check your score on @base:`
+            );
+            const url = encodeURIComponent('https://degen-score-app.vercel.app');
+            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+        });
+
+        // Show Error
+        function showError(message, type = 'error') {
+            errorDiv.textContent = message;
+            errorDiv.style.background = type === 'success' ? '#4caf50' : 
+                                       type === 'info' ? '#2196f3' : '#ff6b6b';
+            errorDiv.classList.add('active');
+            
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => hideError(), 5000);
+            }
+        }
+
+        // Hide Error
+        function hideError() {
+            errorDiv.classList.remove('active');
+        }
+
+        // Initialize - Test with example if in development
+        if (window.location.hostname === 'localhost') {
+            console.log('Development mode - API URL:', API_URL);
+        }
     </script>
 </body>
 </html>
